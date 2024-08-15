@@ -119,6 +119,7 @@ class TikTok(Plugin):
                             {
                                 "main": {
                                     "flv": validate.url(),
+                                    "hls": str,
                                     "sdk_params": validate.all(
                                         validate.parse_json(),
                                         {
@@ -129,6 +130,7 @@ class TikTok(Plugin):
                             },
                             validate.union_get(
                                 ("main", "flv"),
+                                ("main", "hls"),
                                 ("main", "sdk_params", "vbitrate"),
                             ),
                         ),
@@ -137,9 +139,11 @@ class TikTok(Plugin):
                 validate.get("data"),
             ),
         )
-        for name, (url, vbitrate) in streams.items():
+        for name, (flv_url, hls_url, vbitrate) in streams.items():
+            if not hls_url:
+                continue
             self.QUALITY_WEIGHTS[name] = vbitrate
-            yield name, HTTPStream(self.session, url)
+            yield name, HTTPStream(self.session, hls_url)
 
 
 __plugin__ = TikTok
